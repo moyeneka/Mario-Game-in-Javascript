@@ -1,0 +1,581 @@
+<head>
+	<title>Mario Game show</title>
+	<meta charset="UTF-8">
+	<h1> Welcome to my Mario Game show</h1>
+	<p> Thing you can do are:</p>
+	<ul>
+	<p> 1)  shoot fire ball with control</p>
+	<p> 2)  move mario with the arrow keys on your key board </p> 
+	</ul>
+	
+</head>
+<body>
+<br>
+<canvas id="myCanvas" width="1000" height="500" style="border:1px solid #B22222;"></canvas>
+
+<script type="text/javascript">
+
+class Sprite
+{
+// constructor
+	constructor(x, y, width, height)
+	{
+		this.x = x;
+		this.y = y;	
+	}
+
+}
+
+class Tube extends Sprite
+{
+	
+	constructor(x, y, m)
+	{
+		super(x, y, 55, 400)
+		
+		this.model = m;
+		this.w = 55;
+		this.h = 400;
+		this.tube = new Image();
+		this.tube.src = "tube.png";
+	}
+	
+	update()
+	{
+	
+	}
+	
+didIClickOnATube(mouse_X, mouse_Y) 
+ {
+    if (mouse_X < this.x) 
+	{
+      return false;
+    }
+    if (mouse_X > this.x + this.w) 
+	{
+      return false;
+    }
+    if (mouse_Y < this.y) 
+	{
+      return false;
+    }
+    if (mouse_Y > ths.y + this.h) 
+	{
+      return false;
+    } 
+	else 
+	{
+      return true;
+    }
+  }
+  drawingImages(contextToDraw)
+	{
+		contextToDraw.drawImage(this.tube, this.x - this.model.mario.x + this.model.mario.marioOffset, this.y);
+		
+	}
+  
+}
+
+class Mario extends Sprite
+{
+	
+	constructor(x, y, m)
+	{
+		super(x, y, 80, 100)
+		this.w = 80;
+		this.h = 100;
+		this.model = m;
+		
+		this.px = 0;
+		this.py = 0;	
+		this.flip = false;
+		this.movingMario = 0;
+		this.marioImageNum = 0;
+		this.numFramesInAir = 0;
+		this.marioOffset = 100;
+		this.vert_velocity = 12.0;
+
+        this.mario_Image_Mario = new Array();
+		this.mario_Image_Mario[0] = new Image();
+		this.mario_Image_Mario[0].src = 'mario1.png';
+		this.mario_Image_Mario[1] = new Image();
+		this.mario_Image_Mario[1].src = 'mario2.png';
+		this.mario_Image_Mario[2] = new Image();
+		this.mario_Image_Mario[2].src = 'mario3.png';
+		this.mario_Image_Mario[3] = new Image();
+		this.mario_Image_Mario[3].src = 'mario4.png';
+		this.mario_Image_Mario[4] = new Image();
+		this.mario_Image_Mario[4].src = 'mario5.png';
+		
+	}
+	// making mario jump
+	yeet() 
+	 {
+		if (this.numFramesInAir < 5) 
+			{
+				this.vert_velocity -= 20;
+			}
+	 }
+
+    savePreviousPosition()
+    {
+		this.px = this.x;
+		this.py = this.y;
+    }
+	
+	
+	// making mario get out of tube 
+    getOutOfTube(t) 
+    {
+     if (this.x + this.w >= t.x && this.px + this.w <= t.x)
+	 {
+       this.x = t.x - this.w;
+     }
+     if (this.x <= t.x + t.w && this.px >= t.x + t.w)
+	 {
+       this.x = t.x + t.w;
+     }
+     if (this.y + this.h >= t.y && this.py + this.h <= t.y) 
+	 {
+      this.y = t.y - this.h;
+      
+     }
+     if (this.y <= t.y + t.h && this.py >= t.y + t.h)
+	 {
+       this.y = t.y + t.h;
+	   this.vert_velocity = 0;
+      this.numFramesInAir = 0;
+     }
+    }
+  update() 
+  {
+    this.vert_velocity += 4.7;
+    this.y += this.vert_velocity;
+    this.numFramesInAir++;
+    if (this.y > 400 - this.h)
+	{
+      this.vert_velocity = 0;
+      this.y = 400 - this.h;
+      this.numFramesInAir = 0;
+    }
+    if (this.y < 0) 
+	{
+      this.y = 0;
+    }
+	
+	for (let i = 0; i < this.model.sprites.length; i++)
+	{
+      if (this.model.sprites[i] instanceof Tube) 
+	  {
+        let t = this.model.sprites[i];
+        if (this.model.collision(this, t))
+		{
+          this.getOutOfTube(t);
+        }
+      }
+    }
+  }
+ 
+ move() 
+  {
+    
+    this.movingMario++;
+    if (this.movingMario > 4) 
+	{
+      this.movingMario = 0;
+    }
+	
+  }
+	drawingImages(contextToDraw)
+	{
+		if(this.flip)
+		{
+		 
+		 contextToDraw.save();
+				contextToDraw.translate(this.marioOffset+this.w, 0);
+				contextToDraw.scale(-1,1);
+				contextToDraw.drawImage(this.mario_Image_Mario[this.movingMario], this.marioImageNum, this.y, this.w, this.h);
+				contextToDraw.restore();
+		}
+		else
+			  contextToDraw.drawImage(this.mario_Image_Mario[this.movingMario], this.marioOffset, this.y, this.w, this.h);
+		
+	}
+	
+}
+class Goomba extends Sprite
+{
+	
+	constructor(x, y, m)
+	{
+		super(x, y, 99, 118)
+		
+		this.w =100;
+		this.h = 118;
+		this.model = m;
+		this.px = 0;
+		this.py = 0;
+		this.speed = 7;
+		this.direction = 1;
+		this.isOnFire = false;
+		this.health = 30;
+		
+     this.goomba = new Image();
+	this.goomba.src = "goomba.png";
+	  this.goomba_fire = new Image();
+	this.goomba_fire.src = "goomba_fire.png";
+	
+	}
+	
+	 savePreviousPosition() 
+  {
+    this.px = this.x;
+  }
+  
+  update()
+  {
+    this.y = 400 - this.h;
+    this.savePreviousPosition();
+    this.x += this.speed * this.direction;
+	
+    for (let i = 0; i < this.model.sprites.length; i++)
+	{
+      if (this.model.sprites[i] instanceof Tube) 
+	  {
+        let t = this.model.sprites[i];
+        if (this.model.collision(this, t))
+		{
+          this.goombaOutOfTube(t);
+		  
+        }
+      }
+	   if (this.model.sprites[i] instanceof Goomba) 
+	  {
+       if(this.goombaDead()) 
+			{
+				this.model.sprites.splice(i, 1);	
+			}
+
+        }
+      
+    }
+    if (this.isOnFire) 
+	{
+      this.goomba = this.goomba_fire;
+	  this.health--;
+    }
+  }
+  goombaDead()
+  {
+    if (this.health <= 0)
+	{
+      return true;
+    } 
+	else 
+	{
+      return false;
+    }
+  }
+  goombaOutOfTube(t) 
+  {
+    if (this.x + this.w >= t.x && this.px + this.w <= t.x)
+	{
+      this.x = t.x - this.w;
+      this.direction = -1;
+    }
+    if (this.x <= t.x + t.w && this.px >= t.x + t.w)
+	{
+      this.x = t.x + t.w;
+      this.direction = 1;
+    }
+  }
+  setOnFire() 
+  {
+    this.isOnFire = true;
+  }
+  
+  drawingImages(contextToDraw)
+	{
+		contextToDraw.drawImage(this.goomba, this.x - this.model.mario.x + this.model.mario.marioOffset, this.y);
+		
+	}
+	
+}
+class Fireball extends Sprite
+{
+	
+	constructor(x, y, f, m)
+	{
+		super(x, y, 59, 59)
+		
+		this.w = 59;
+		this.h = 59;
+		
+	this.px = 0;
+    this.py = 0;
+    this.moving = 20;	
+	this.model = m;
+    this.vert_velocity = 12.0;
+    this.flip = f;
+
+	 this.fireball = new Image();
+		this.fireball.src = "fireball.png";
+        
+	}
+	
+	 update() 
+	{
+		this.vert_velocity += 4.7;
+		this.y += this.vert_velocity;
+		if (this.flip)
+		{
+		  this.x -= this.moving;
+		} 
+		else 
+		{
+		  this.x += this.moving;
+		}
+		if (this.y > 400 - this.h) {
+		  this.vert_velocity = -30;
+		  this.y = 400 - this.h;
+		}
+		if (this.y < 0) {
+		  this.y = 0;
+		}
+		for (let i = 0; i < this.model.sprites.length; i++) 
+		{
+		  if (this.model.sprites[i] instanceof Goomba) 
+		  {
+			let g = this.model.sprites[i];
+			if (this.model.collision(this, g))
+			{
+			  g.setOnFire();
+			}
+		  }
+		
+		if (this.model.sprites[i] instanceof Fireball) 
+		{
+			let f = this.model.sprites[i];
+				if(f.x >= 3000) 
+					{
+						this.model.sprites.splice(i, 1);	
+					}
+				if(f.x <= -500) 
+					{
+						this.model.sprites.splice(i, 1);	
+					}
+        }
+		}
+	}
+	drawingImages(contextToDraw)
+	{
+		contextToDraw.drawImage(this.fireball, this.x - this.model.mario.x + this.model.mario.marioOffset, this.y);
+		
+	}
+}
+
+
+class Model
+{
+	constructor()
+	{
+		this.sprites = [];
+		this.mario = null;
+    this.goomba = null;
+    this.fireball = null;
+		this.mario = new Mario(100, 100, this);
+		this.sprites.push(this.mario);
+		this.Tube = new Tube(345, 150, this);
+		this.sprites.push(this.Tube);
+		this.Tube = new Tube(654, 170, this);
+		this.sprites.push(this.Tube);
+		this.sprites.push(new Tube(799, 199, this));
+		this.sprites.push(new Goomba(465, 284, this));
+	
+		
+	} 
+	
+ collision(a, b) 
+ {
+    let spriteARight = a.x + a.w;
+    let spriteALeft = a.x;
+    let spriteATop = a.y;
+    let spriteABottom = a.y + a.h;
+    let spriteBRight = b.x + b.w;
+    let spriteBLeft = b.x;
+    let spriteBTop = b.y;
+    let spriteBBottom = b.y + b.h;
+	
+    if (spriteARight <= spriteBLeft) 
+	{
+      return false;
+    }
+    if (spriteALeft >= spriteBRight) 
+	{
+      return false;
+    }
+    if (spriteABottom <= spriteBTop) 
+	{
+      return false;
+    }
+    if (spriteATop >= spriteBBottom)
+	{
+      return false;
+    }
+    return true;
+  }
+	addFireball()
+	{
+		
+		if(this.mario.flip)
+		{
+			this.sprites.push(new Fireball(this.mario.x, this.mario.y, this.mario.flip, this)); 	
+		}
+		else
+		{
+			this.sprites.push(new Fireball(this.mario.x + this.mario.w, this.mario.y, this.mario.flip, this));
+		}
+		
+		
+	}
+	update()
+	{
+		for(let i = 0; i < this.sprites.length; i++)
+		{
+			this.sprites[i].update();
+		}
+	}
+}
+
+class View
+{
+	constructor(model)
+	{
+		this.model = model;
+		this.canvas = document.getElementById("myCanvas");
+		this.tube = new Image();
+		this.tube.src = "tube.png";
+	}
+
+	update()
+	{
+		let contextToDraw = this.canvas.getContext("2d");
+		contextToDraw.fillStyle = "#00FFFF";
+		contextToDraw.fillRect(0, 0, 1000, 500);
+		contextToDraw.fillStyle = "#7CFC00";
+		contextToDraw.fillRect(0, 400, 1000, 100);
+		
+		for(let i = 0; i < this.model.sprites.length; i++)
+		{
+			let sprite = this.model.sprites[i];
+				sprite.drawingImages(contextToDraw);
+				
+		}
+	}
+}
+
+
+
+class Controller
+{
+	constructor(model, view)
+	{
+		this.model = model;
+		this.view = view;
+		this.key_right = false;
+		this.key_left = false;
+		this.key_up = false;
+		this.key_down = false;
+		this.control = false;
+		let self = this;
+		document.addEventListener('keydown', function(event) { self.keyDown(event); }, false);
+		document.addEventListener('keyup', function(event) { self.keyUp(event); }, false);
+	}
+
+
+	keyDown(event)
+	{
+		if(event.keyCode == 39) this.key_right = true;
+		else if(event.keyCode == 37) this.key_left = true;
+		else if(event.keyCode == 38) this.key_up = true;
+		else if(event.keyCode == 40) this.key_down = true;
+		else if(event.keyCode == 17) this.control = true;
+		else if(event.keyCode == 32) this.space = true;
+	}
+
+	keyUp(event)
+	{
+		if(event.keyCode == 39) this.key_right = false;
+		else if(event.keyCode == 37) this.key_left = false;
+		else if(event.keyCode == 38) this.key_up = false;
+		else if(event.keyCode == 40) this.key_down = false;
+		else if(event.keyCode == 17) this.control = false;
+		else if(event.keyCode == 32) this.space = false;
+	}
+update() 
+{
+   this.model.mario.savePreviousPosition();
+	
+    if (this.key_right)
+	{
+	  this.model.mario.flip = false;
+      for (let i = 0; i < this.model.sprites.length; i++)
+	  {
+        if (this.model.sprites[i] instanceof Mario)
+		{
+		this.model.mario.x +=5;
+		 this.model.mario.move();
+        }
+      }
+    }
+    if (this.key_left)
+	{
+      this.model.mario.flip = true;
+      for (let i = 0; i < this.model.sprites.length; i++)
+	  {
+        if (this.model.sprites[i] instanceof Mario) 
+		{
+		 this.model.mario.x -=5;
+		 this.model.mario.move();
+        }
+      }
+    }
+	//Making mario jump
+		if (this.key_up || this.space)
+		   this.model.mario.yeet();
+	// make mario shoot fire ball
+	if(this.control)
+		{
+			this.model.addFireball();
+		}
+  }
+}
+
+
+
+
+
+class Game
+{
+	constructor()
+	{
+		this.model = new Model();
+		this.view = new View(this.model);
+		this.controller = new Controller(this.model, this.view);
+	}
+
+	onTimer()
+	{
+		this.controller.update();
+		this.model.update();
+		this.view.update();
+	}
+}
+
+
+let game = new Game();
+let timer = setInterval(function() { game.onTimer(); }, 40);
+
+</script>
+
+</body>
